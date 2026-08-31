@@ -4,10 +4,8 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
-# Required for GitHub OIDC authentication with Azure
 permissions:
   id-token: write
   contents: read
@@ -28,15 +26,9 @@ jobs:
 
     steps:
 
-      # ----------------------------------------------------------
-      # Checkout
-      # ----------------------------------------------------------
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      # ----------------------------------------------------------
-      # Node.js
-      # ----------------------------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,23 +36,14 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
 
-      # ----------------------------------------------------------
-      # Install dependencies
-      # ----------------------------------------------------------
       - name: Install dependencies
         working-directory: app
         run: npm ci
 
-      # ----------------------------------------------------------
-      # Tests
-      # ----------------------------------------------------------
       - name: Run tests
         working-directory: app
         run: npm test --if-present
 
-      # ----------------------------------------------------------
-      # Create deployment package
-      # ----------------------------------------------------------
       - name: Create application package
         working-directory: app
         run: |
@@ -68,9 +51,6 @@ jobs:
             -x "node_modules/*" \
             -x ".git/*"
 
-      # ----------------------------------------------------------
-      # Upload artifact
-      # ----------------------------------------------------------
       - name: Upload application artifact
         uses: actions/upload-artifact@v4
         with:
@@ -93,25 +73,17 @@ jobs:
       contents: read
 
     env:
-      # Azure OIDC authentication
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       ARM_USE_OIDC: "true"
       ARM_USE_AZUREAD: "true"
 
     steps:
 
-      # ----------------------------------------------------------
-      # Checkout
-      # ----------------------------------------------------------
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      # ----------------------------------------------------------
-      # Azure Login using OIDC
-      # ----------------------------------------------------------
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -119,31 +91,19 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # ----------------------------------------------------------
-      # Verify Azure authentication
-      # ----------------------------------------------------------
       - name: Verify Azure Login
         run: |
           az account show
 
-      # ----------------------------------------------------------
-      # Install Terraform
-      # ----------------------------------------------------------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.5"
 
-      # ----------------------------------------------------------
-      # Terraform Format
-      # ----------------------------------------------------------
       - name: Terraform Format Check
         working-directory: terraform
         run: terraform fmt -check -recursive
 
-      # ----------------------------------------------------------
-      # Terraform Init
-      # ----------------------------------------------------------
       - name: Terraform Init
         working-directory: terraform
         run: |
@@ -153,23 +113,14 @@ jobs:
             -backend-config="container_name=${{ secrets.TFSTATE_CONTAINER }}" \
             -backend-config="key=terraform.tfstate"
 
-      # ----------------------------------------------------------
-      # Terraform Validate
-      # ----------------------------------------------------------
       - name: Terraform Validate
         working-directory: terraform
         run: terraform validate
 
-      # ----------------------------------------------------------
-      # Terraform Plan
-      # ----------------------------------------------------------
       - name: Terraform Plan
         working-directory: terraform
         run: terraform plan -out=tfplan
 
-      # ----------------------------------------------------------
-      # Terraform Apply
-      # ----------------------------------------------------------
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve tfplan
@@ -191,23 +142,14 @@ jobs:
 
     steps:
 
-      # ----------------------------------------------------------
-      # Checkout
-      # ----------------------------------------------------------
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      # ----------------------------------------------------------
-      # Download application artifact
-      # ----------------------------------------------------------
       - name: Download application artifact
         uses: actions/download-artifact@v4
         with:
           name: app-package
 
-      # ----------------------------------------------------------
-      # Azure Login using OIDC
-      # ----------------------------------------------------------
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -215,9 +157,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # ----------------------------------------------------------
-      # Deploy to Azure App Service
-      # ----------------------------------------------------------
       - name: Deploy to App Service
         uses: azure/webapps-deploy@v3
         with:
