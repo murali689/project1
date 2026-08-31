@@ -4,11 +4,11 @@ data "azurerm_client_config" "current" {}
 # Key Vault
 # ---------------------------------------------------------
 resource "azurerm_key_vault" "this" {
-  name                          = "${var.prefix}-keyvault-07"
-  location                      = var.location
-  resource_group_name           = var.resource_group_name
-  tenant_id                     = data.azurerm_client_config.current.tenant_id
-  sku_name                      = "standard"
+  name                = "${var.prefix}-keyvault-07"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 
   # Public network access stays enabled (locked down via network_acls below)
   # because Terraform itself runs from outside the VNet and needs a path to
@@ -27,7 +27,7 @@ resource "azurerm_key_vault" "this" {
   }
 
   # Use Azure RBAC for Key Vault permissions
-  enable_rbac_authorization     = true
+  enable_rbac_authorization = true
 
   tags = var.tags
 }
@@ -45,7 +45,7 @@ resource "azurerm_role_assignment" "app_service_secrets_user" {
 # Deployer / CI → Key Vault Secrets Officer
 # ---------------------------------------------------------
 resource "azurerm_role_assignment" "deployer_secrets_officer" {
-  count                = var.deployer_principal_id == "" ? 0 : 1
+  count = var.deployer_principal_id == "" ? 0 : 1
 
   scope                = azurerm_key_vault.this.id
   role_definition_name = "Key Vault Secrets Officer"

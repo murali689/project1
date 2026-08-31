@@ -29,9 +29,9 @@ resource "azurerm_linux_web_app" "this" {
   # No secrets hardcoded here: Key Vault URI is passed so the app
   # can fetch secrets itself at runtime using its Managed Identity.
   app_settings = {
-    "KEY_VAULT_URI"                       = var.key_vault_uri
-    "WEBSITE_RUN_FROM_PACKAGE"            = "1"
-    "SCM_DO_BUILD_DURING_DEPLOYMENT"      = "false"
+    "KEY_VAULT_URI"                  = var.key_vault_uri
+    "WEBSITE_RUN_FROM_PACKAGE"       = "1"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "false"
   }
 }
 
