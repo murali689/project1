@@ -11,6 +11,10 @@ permissions:
   contents: read
 
 env:
+<<<<<<< Updated upstream
+=======
+  AZURE_WEBAPP_NAME: murali-app
+>>>>>>> Stashed changes
   TF_WORKING_DIR: terraform
   APP_WORKING_DIR: app
 
@@ -129,5 +133,10 @@ jobs:
       - name: Deploy to App Service
         uses: azure/webapps-deploy@v3
         with:
+<<<<<<< Updated upstream
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           package: app.zip
+=======
+          app-name: murali-app
+          package: app.zip
+>>>>>>> Stashed changes
