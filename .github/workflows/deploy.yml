@@ -136,6 +136,7 @@ jobs:
           terraform import module.key_vault.azurerm_key_vault.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.KeyVault/vaults/murali-keyvault-07" || true
           terraform import module.key_vault_private_endpoint.azurerm_private_dns_zone.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net" || true
           terraform import module.key_vault_private_endpoint.azurerm_private_endpoint.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateEndpoints/murali-kv-pe" || true
+          terraform import module.key_vault_private_endpoint.azurerm_private_dns_zone_virtual_network_link.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net/virtualNetworkLinks/murali-kv-dns-link" || true
 
       - name: Terraform Plan
         working-directory: terraform

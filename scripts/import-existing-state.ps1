@@ -26,7 +26,8 @@ $imports = @(
     "module.sql_database.azurerm_mssql_server.this|/subscriptions/$subscriptionId/resourceGroups/$rg/providers/Microsoft.Sql/servers/$prefix-sqlsrv",
     "module.sql_database.azurerm_mssql_database.this|/subscriptions/$subscriptionId/resourceGroups/$rg/providers/Microsoft.Sql/servers/$prefix-sqlsrv/databases/$prefix-sqldb",
     "module.key_vault_private_endpoint.azurerm_private_dns_zone.kv|/subscriptions/$subscriptionId/resourceGroups/$rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net",
-    "module.key_vault_private_endpoint.azurerm_private_endpoint.kv|/subscriptions/$subscriptionId/resourceGroups/$rg/providers/Microsoft.Network/privateEndpoints/$prefix-kv-pe"
+    "module.key_vault_private_endpoint.azurerm_private_endpoint.kv|/subscriptions/$subscriptionId/resourceGroups/$rg/providers/Microsoft.Network/privateEndpoints/$prefix-kv-pe",
+    "module.key_vault_private_endpoint.azurerm_private_dns_zone_virtual_network_link.kv|/subscriptions/$subscriptionId/resourceGroups/$rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net/virtualNetworkLinks/$prefix-kv-dns-link"
 )
 
 Set-Location "$PSScriptRoot/../terraform"
