@@ -31,13 +31,32 @@ async function loadSecretsAndStartTelemetry() {
     // const sqlSecret = await client.getSecret('Sql-ConnectionString');
   } catch (err) {
     console.error('Failed to retrieve secrets from Key Vault:', err.message);
+    console.warn('Continuing without Application Insights...');
   }
 }
 
-loadSecretsAndStartTelemetry();
+// Start the server only after loading secrets
+async function startServer() {
+  try {
+    await loadSecretsAndStartTelemetry();
+    
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } catch (err) {
+    console.error('Fatal error during startup:', err);
+    process.exit(1);
+  }
+}
 
 app.use(express.json());
 app.use(express.static('public'));
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal Server Error', message: err.message });
+});
 
 // Simple home route
 app.get('/', (req, res) => {
@@ -64,6 +83,5 @@ app.get('/api/greet/:name', (req, res) => {
   res.json({ message: `Hello, ${req.params.name}!` });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// Start the server
+startServer();
