@@ -5,25 +5,21 @@ const { SecretClient } = require('@azure/keyvault-secrets');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Initialize Application Insights if available
 let appInsightsInitialized = false;
 
-// KEY_VAULT_URI is injected as an App Setting by Terraform (no secret values,
-// just the vault's address). The actual secrets are fetched below using the
-// App Service's system-assigned Managed Identity - nothing is hardcoded.
+// Load secrets from Key Vault using Managed Identity
 async function loadSecretsAndStartTelemetry() {
   const vaultUri = process.env.KEY_VAULT_URI;
   if (!vaultUri) {
-    console.warn('[STARTUP] KEY_VAULT_URI not set - skipping Key Vault secret retrieval.');
+    console.warn('[STARTUP] KEY_VAULT_URI not set - skipping Key Vault.');
     return;
   }
   
   try {
-    console.log('[STARTUP] Attempting to load secrets from Key Vault:', vaultUri);
-    const credential = new DefaultAzureCredential(); // uses Managed Identity on Azure
+    console.log('[STARTUP] Loading secrets from Key Vault:', vaultUri);
+    const credential = new DefaultAzureCredential();
     const client = new SecretClient(vaultUri, credential);
 
-    console.log('[STARTUP] Fetching AppInsights-ConnectionString from Key Vault...');
     const appInsightsSecret = await client.getSecret('AppInsights-ConnectionString');
     if (appInsightsSecret && appInsightsSecret.value) {
       const appInsights = require('applicationinsights');
@@ -32,66 +28,66 @@ async function loadSecretsAndStartTelemetry() {
         .setSendLiveMetrics(true)
         .start();
       appInsightsInitialized = true;
-      console.log('[STARTUP] ✓ Application Insights initialized from Key Vault secret.');
+      console.log('[STARTUP] ✓ Application Insights initialized.');
     }
   } catch (err) {
-    console.error('[STARTUP] ❌ Failed to retrieve secrets from Key Vault:', err.message);
-    console.warn('[STARTUP] ⚠️  Continuing without Application Insights...');
-    // Don't fail startup - the app can run without App Insights
+    console.error('[STARTUP] ❌ Failed to load Key Vault secrets:', err.message);
+    console.warn('[STARTUP] Continuing without Application Insights...');
   }
 }
 
-// Setup all routes BEFORE starting server
+// Setup routes
 app.use(express.json());
 app.use(express.static('public'));
 
-// Logging middleware
+// Request logging
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// Health check endpoint (useful for App Service health checks)
+// Health endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     uptime: process.uptime(),
-    appInsights: appInsightsInitialized,
-    timestamp: new Date().toISOString()
+    appInsights: appInsightsInitialized
   });
 });
 
-// Simple home route
+// Home page
 app.get('/', (req, res) => {
   res.send(`
+    <!DOCTYPE html>
     <html>
       <head>
-        <title>Sample App</title>
+        <title>Azure App Service</title>
         <style>
-          body { font-family: sans-serif; text-align: center; margin-top: 80px; }
-          .success { color: green; }
-          .warning { color: orange; }
+          body { font-family: Arial, sans-serif; margin: 40px; }
+          h1 { color: #0078d4; }
+          .status { padding: 10px; background: #f0f0f0; border-radius: 5px; }
         </style>
       </head>
       <body>
-        <h1>🚀 Hello from Azure App Service!</h1>
-        <p>This is a simple Node.js/Express app.</p>
-        <p>Server time: ${new Date().toLocaleString()}</p>
-        <p class="${appInsightsInitialized ? 'success' : 'warning'}">
-          Application Insights: ${appInsightsInitialized ? '✓ Connected' : '⚠️ Disabled'}
-        </p>
+        <h1>🚀 Hello from Azure!</h1>
+        <div class="status">
+          <p><strong>Status:</strong> Running on Node.js ${process.version}</p>
+          <p><strong>Uptime:</strong> ${Math.floor(process.uptime())}s</p>
+          <p><strong>App Insights:</strong> ${appInsightsInitialized ? '✓ Connected' : '⚠️ Offline'}</p>
+          <p><strong>Server Time:</strong> ${new Date().toLocaleString()}</p>
+        </div>
         <hr>
         <h3>API Endpoints:</h3>
         <ul>
-          <li><a href="/api/health">Health Check</a></li>
-          <li><a href="/api/greet/World">Greeting API</a></li>
+          <li><a href="/api/health">/api/health</a> - Health check</li>
+          <li><a href="/api/greet/World">/api/greet/:name</a> - Greeting API</li>
         </ul>
       </body>
     </html>
   `);
 });
 
-// Simple example API route
+// Greeting API
 app.get('/api/greet/:name', (req, res) => {
   res.json({ message: `Hello, ${req.params.name}!` });
 });
@@ -101,58 +97,51 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
 
-// Global error handler (must be last)
+// Error handler
 app.use((err, req, res, next) => {
-  console.error('[ERROR]', err);
-  res.status(500).json({ 
-    error: 'Internal Server Error', 
-    message: err.message 
-  });
+  console.error('[ERROR]', err.message);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Start the server - NEVER crash, always start
+// Start server
 async function startServer() {
   try {
-    console.log('[STARTUP] Initializing application...');
-    console.log('[STARTUP] PORT:', port);
-    console.log('[STARTUP] NODE_ENV:', process.env.NODE_ENV || 'production');
+    console.log('[STARTUP] Starting application on port', port);
     
-    // Set a 30-second timeout for secret loading
-    const secretLoadPromise = loadSecretsAndStartTelemetry();
-    const timeoutPromise = new Promise((resolve) => 
+    // Load secrets with 30 second timeout
+    const loadSecretsPromise = loadSecretsAndStartTelemetry();
+    const timeoutPromise = new Promise(resolve => 
       setTimeout(() => {
-        console.warn('[STARTUP] Secret loading timeout - continuing startup');
+        console.warn('[STARTUP] Secret loading timeout - continuing');
         resolve();
       }, 30000)
     );
     
-    await Promise.race([secretLoadPromise, timeoutPromise]);
+    await Promise.race([loadSecretsPromise, timeoutPromise]);
     
-    // Bind to 0.0.0.0 to listen on all interfaces (required for Azure App Service)
+    // Start listening on all interfaces
     app.listen(port, '0.0.0.0', () => {
       console.log(`[STARTUP] ✓ Server listening on 0.0.0.0:${port}`);
-      console.log(`[STARTUP] ✓ Application ready for requests`);
+      console.log('[STARTUP] ✓ Application ready');
     });
     
   } catch (err) {
-    console.error('[STARTUP] ❌ Unexpected error during startup:', err);
-    console.error('[STARTUP] Stack trace:', err.stack);
-    console.warn('[STARTUP] ⚠️  CRITICAL: Error during startup, but NOT exiting. Continuing...');
-    // DO NOT call process.exit() - let the app stay running
-    // Azure App Service will restart if needed
+    console.error('[STARTUP] Error:', err.message);
+    // Continue anyway - don't crash
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`[STARTUP] ✓ Server listening on 0.0.0.0:${port} (with error)`);
+    });
   }
 }
 
-// Handle uncaught exceptions
+// Global error handlers
 process.on('uncaughtException', (err) => {
-  console.error('[UNCAUGHT_EXCEPTION]', err);
-  console.warn('[UNCAUGHT_EXCEPTION] App is still running despite error');
+  console.error('[UNCAUGHT]', err.message);
 });
 
-// Handle unhandled rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[UNHANDLED_REJECTION]', reason);
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED]', reason);
 });
 
-// Start the server
+// Start the app
 startServer();
