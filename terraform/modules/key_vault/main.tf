@@ -73,13 +73,6 @@ resource "azurerm_key_vault_secret" "appinsights_connection_string" {
   depends_on = [
     time_sleep.rbac_propagation
   ]
-
-  # Retry logic for RBAC propagation delays
-  timeouts {
-    create = "5m"
-    read   = "5m"
-    update = "5m"
-  }
 }
 
 # ---------------------------------------------------------
@@ -93,11 +86,4 @@ resource "azurerm_key_vault_secret" "sql_connection_string" {
   depends_on = [
     time_sleep.rbac_propagation
   ]
-
-  # Retry logic for RBAC propagation delays
-  timeouts {
-    create = "5m"
-    read   = "5m"
-    update = "5m"
-  }
 }
