@@ -1,13 +1,13 @@
 variable "prefix" {
   description = "Short name prefix used for all resources"
   type        = string
-  default     = "demoapp"
+  default     = "murali"
 }
 
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "eastus"
+  default     = "Central India"
 }
 
 variable "vnet_cidr" {
