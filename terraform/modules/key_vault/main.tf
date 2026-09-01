@@ -50,6 +50,18 @@ resource "azurerm_role_assignment" "deployer_secrets_officer" {
   principal_id         = var.deployer_principal_id
 }
 
+# Wait for RBAC role assignments to propagate (can take 30-60 seconds)
+# This is critical because terraform plan tries to read secrets immediately
+# after creating role assignments, and Azure RBAC changes are eventually consistent
+resource "time_sleep" "rbac_propagation" {
+  depends_on = [
+    azurerm_role_assignment.deployer_secrets_officer,
+    azurerm_role_assignment.app_service_secrets_user
+  ]
+
+  create_duration = "90s"
+}
+
 # ---------------------------------------------------------
 # Application Insights Connection String
 # ---------------------------------------------------------
@@ -59,8 +71,7 @@ resource "azurerm_key_vault_secret" "appinsights_connection_string" {
   key_vault_id = azurerm_key_vault.this.id
 
   depends_on = [
-    azurerm_role_assignment.deployer_secrets_officer,
-    azurerm_role_assignment.app_service_secrets_user
+    time_sleep.rbac_propagation
   ]
 
   # Retry logic for RBAC propagation delays
@@ -80,8 +91,7 @@ resource "azurerm_key_vault_secret" "sql_connection_string" {
   key_vault_id = azurerm_key_vault.this.id
 
   depends_on = [
-    azurerm_role_assignment.deployer_secrets_officer,
-    azurerm_role_assignment.app_service_secrets_user
+    time_sleep.rbac_propagation
   ]
 
   # Retry logic for RBAC propagation delays
