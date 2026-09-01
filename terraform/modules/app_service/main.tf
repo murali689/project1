@@ -20,7 +20,9 @@ resource "azurerm_linux_web_app" "this" {
   }
 
   site_config {
-    always_on = true
+    always_on                = true
+    ftps_state               = "Disabled"
+    app_command_line         = "node server.js"
     application_stack {
       node_version = var.node_version
     }
@@ -31,7 +33,8 @@ resource "azurerm_linux_web_app" "this" {
   app_settings = {
     "KEY_VAULT_URI"                  = var.key_vault_uri
     "WEBSITE_RUN_FROM_PACKAGE"       = "1"
-    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "false"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
+    "PORT"                           = "8080"
   }
 }
 
