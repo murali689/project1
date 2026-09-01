@@ -122,21 +122,21 @@ jobs:
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: |
-          terraform import module.resource_group.azurerm_resource_group.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg" || true
-          terraform import module.network.azurerm_virtual_network.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet" || true
-          terraform import module.network.azurerm_subnet.public "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet/subnets/snet-public" || true
-          terraform import module.network.azurerm_subnet.app "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet/subnets/snet-app" || true
-          terraform import module.network.azurerm_subnet.pe "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet/subnets/snet-private-endpoint" || true
-          terraform import module.app_insights.azurerm_log_analytics_workspace.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.OperationalInsights/workspaces/murali-law" || true
-          terraform import module.app_insights.azurerm_application_insights.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Insights/components/murali-appinsights" || true
-          terraform import module.app_service.azurerm_service_plan.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Web/serverFarms/murali-plan" || true
-          terraform import module.app_service.azurerm_linux_web_app.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Web/sites/murali-app" || true
-          terraform import module.sql_database.azurerm_mssql_server.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Sql/servers/murali-sqlsrv" || true
-          terraform import module.sql_database.azurerm_mssql_database.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Sql/servers/murali-sqlsrv/databases/murali-sqldb" || true
-          terraform import module.key_vault.azurerm_key_vault.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.KeyVault/vaults/murali-keyvault-07" || true
-          terraform import module.key_vault_private_endpoint.azurerm_private_dns_zone.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net" || true
-          terraform import module.key_vault_private_endpoint.azurerm_private_endpoint.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateEndpoints/murali-kv-pe" || true
-          terraform import module.key_vault_private_endpoint.azurerm_private_dns_zone_virtual_network_link.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net/virtualNetworkLinks/murali-kv-dns-link" || true
+          terraform import -lock=false module.resource_group.azurerm_resource_group.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg" || true
+          terraform import -lock=false module.network.azurerm_virtual_network.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet" || true
+          terraform import -lock=false module.network.azurerm_subnet.public "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet/subnets/snet-public" || true
+          terraform import -lock=false module.network.azurerm_subnet.app "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet/subnets/snet-app" || true
+          terraform import -lock=false module.network.azurerm_subnet.pe "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/virtualNetworks/murali-vnet/subnets/snet-private-endpoint" || true
+          terraform import -lock=false module.app_insights.azurerm_log_analytics_workspace.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.OperationalInsights/workspaces/murali-law" || true
+          terraform import -lock=false module.app_insights.azurerm_application_insights.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Insights/components/murali-appinsights" || true
+          terraform import -lock=false module.app_service.azurerm_service_plan.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Web/serverFarms/murali-plan" || true
+          terraform import -lock=false module.app_service.azurerm_linux_web_app.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Web/sites/murali-app" || true
+          terraform import -lock=false module.sql_database.azurerm_mssql_server.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Sql/servers/murali-sqlsrv" || true
+          terraform import -lock=false module.sql_database.azurerm_mssql_database.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Sql/servers/murali-sqlsrv/databases/murali-sqldb" || true
+          terraform import -lock=false module.key_vault.azurerm_key_vault.this "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.KeyVault/vaults/murali-keyvault-07" || true
+          terraform import -lock=false module.key_vault_private_endpoint.azurerm_private_dns_zone.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net" || true
+          terraform import -lock=false module.key_vault_private_endpoint.azurerm_private_endpoint.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateEndpoints/murali-kv-pe" || true
+          terraform import -lock=false module.key_vault_private_endpoint.azurerm_private_dns_zone_virtual_network_link.kv "/subscriptions/${ARM_SUBSCRIPTION_ID}/resourceGroups/murali-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net/virtualNetworkLinks/murali-kv-dns-link" || true
 
       - name: Terraform Plan
         working-directory: terraform

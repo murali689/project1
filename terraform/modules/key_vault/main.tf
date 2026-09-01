@@ -45,25 +45,10 @@ resource "azurerm_role_assignment" "app_service_secrets_user" {
 # Deployer / CI → Key Vault Secrets Officer
 # ---------------------------------------------------------
 resource "azurerm_role_assignment" "deployer_secrets_officer" {
-  count = var.deployer_principal_id == "" ? 0 : 1
-
   scope                = azurerm_key_vault.this.id
   role_definition_name = "Key Vault Secrets Officer"
   principal_id         = var.deployer_principal_id
 }
-
-# ---------------------------------------------------------
-# NOTE: the Private Endpoint + Private DNS Zone for this Key Vault are
-# created by the separate "key_vault_private_endpoint" module invocation
-# in root main.tf (./modules/private_endpoint), not here. Duplicating that
-# wiring in this module previously caused two problems:
-#   1. "azurerm_private_dns_zone_group" was declared as a standalone
-#      resource, which the azurerm provider doesn't support (it's only a
-#      nested `private_dns_zone_group` block inside azurerm_private_endpoint,
-#      as the private_endpoint module correctly does).
-#   2. It created a second Private Endpoint pointed at the same Key Vault,
-#      duplicating the one in root main.tf.
-# ---------------------------------------------------------
 
 # ---------------------------------------------------------
 # Application Insights Connection String
@@ -74,8 +59,16 @@ resource "azurerm_key_vault_secret" "appinsights_connection_string" {
   key_vault_id = azurerm_key_vault.this.id
 
   depends_on = [
-    azurerm_role_assignment.deployer_secrets_officer
+    azurerm_role_assignment.deployer_secrets_officer,
+    azurerm_role_assignment.app_service_secrets_user
   ]
+
+  # Retry logic for RBAC propagation delays
+  timeouts {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+  }
 }
 
 # ---------------------------------------------------------
@@ -87,6 +80,14 @@ resource "azurerm_key_vault_secret" "sql_connection_string" {
   key_vault_id = azurerm_key_vault.this.id
 
   depends_on = [
-    azurerm_role_assignment.deployer_secrets_officer
+    azurerm_role_assignment.deployer_secrets_officer,
+    azurerm_role_assignment.app_service_secrets_user
   ]
+
+  # Retry logic for RBAC propagation delays
+  timeouts {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+  }
 }

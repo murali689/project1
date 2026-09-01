@@ -39,7 +39,7 @@ foreach ($entry in $imports) {
     $id = $parts[1]
 
     Write-Host "Importing $resource -> $id"
-    terraform import $resource $id
+    terraform import -lock=false $resource $id
 }
 
 Write-Host "Import complete. Run 'terraform plan' to confirm the state matches Azure."

@@ -15,8 +15,8 @@ variable "app_service_principal_id" {
 }
 
 variable "deployer_principal_id" {
-  type    = string
-  default = ""
+  type        = string
+  description = "The Object ID of the deployer (Terraform runner) who needs to manage Key Vault secrets. Required for RBAC role assignment."
 }
 
 variable "app_insights_connection_string" {
